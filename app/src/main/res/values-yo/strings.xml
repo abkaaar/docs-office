@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Docs Office</string>
+    <string name="nav_home">Ilé</string>
+    <string name="nav_files">Àwọn fáìlì</string>
+    <string name="nav_search">Wá</string>
+    <string name="nav_tools">Àwọn irinṣẹ́</string>
+    <string name="nav_more">Síwájú</string>
+    <string name="vault_title">Vault</string>
+    <string name="vault_lock">Ti vault</string>
+    <string name="vault_unlock">Ṣí vault</string>
+    <string name="vault_empty">Vault ò ní nkankan. Gbe àwọn ìwé láti Àwọn fáìlì.</string>
+    <string name="settings_vault">Vault àdáni</string>
+    <string name="back">Padà</string>
+    <string name="onboarding_title_manage">Ṣàkóso àwọn ìwé lórí ẹ̀rọ rẹ</string>
+    <string name="onboarding_body_manage">Wá, ṣí, ṣètò àti pín fáìlì láti Downloads, WhatsApp, Telegram àti inú — nínú ilé-ìkàwé kan.</string>
+    <string name="onboarding_title_private">Ó wà lórí fóònù rẹ</string>
+    <string name="onboarding_body_private">Kò sí ohun tí a gbé lórí nẹ́tíwọ́kì. Àwọn fáìlì rẹ jẹ́ àṣírí, wọ́n sì ń ṣiṣẹ́ láìsí íńtánẹ́ẹ̀tì.</string>
+    <string name="onboarding_title_access">Fàyè gba ìfipamọ́</string>
+    <string name="onboarding_body_access">A nílò ìráàyèsí láti rí àwọn ìwé lórí ẹ̀rọ yìí. O lè yan àwọn folder pàtó.</string>
+    <string name="onboarding_skip">Fòó</string>
+    <string name="onboarding_next">Tẹ̀síwájú</string>
+    <string name="onboarding_back">Padà</string>
+    <string name="onboarding_allow">Fàyè gba ìráàyèsí</string>
+    <string name="onboarding_choose_folders">Yan àwọn folder dípò</string>
+    <string name="home_empty">Kò sí ìwé síbẹ̀. Ṣe ìgbàsílẹ̀ tàbí gba fáìlì, lẹ́yìn náà tẹ Scan again.</string>
+    <string name="home_manage_hint">Ṣàkóso ìwé èyíkéyìí lórí ẹ̀rọ rẹ</string>
+    <string name="scan_documents">Ṣàyẹ̀wò àwọn ìwé</string>
+    <string name="open_with">Ṣí pẹ̀lú…</string>
+    <string name="share">Pín</string>
+</resources>

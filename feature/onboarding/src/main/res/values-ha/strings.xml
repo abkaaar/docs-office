@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title_manage">Sarrafa takardu a wayarka</string>
+    <string name="onboarding_body_manage">Bincika, buɗe, tsara da raba fayiloli daga Downloads, WhatsApp, Telegram da sauransu — a ɗaya dakin karatu.</string>
+    <string name="onboarding_title_private">Yana kan wayarka</string>
+    <string name="onboarding_body_private">Babu abin da ake loda. Fayilolinka suna sirri kuma suna aiki ba tare da intanet ba.</string>
+    <string name="onboarding_title_access">Bada damar ajiya</string>
+    <string name="onboarding_body_access">Muna buƙatar damar gano takardu a wannan na\'ura. Kuna iya zaɓar wasu folda.</string>
+    <string name="onboarding_skip">Tsallake</string>
+    <string name="onboarding_next">Na gaba</string>
+    <string name="onboarding_back">Baya</string>
+    <string name="onboarding_allow">Bada dama</string>
+    <string name="onboarding_choose_folders">Zaɓi folda maimakon</string>
+</resources>

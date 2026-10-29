@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Docs Office</string>
+    <string name="onboarding_title_manage">Manage documents on your device</string>
+    <string name="onboarding_body_manage">Browse, open, organise and share files from Downloads, WhatsApp, Telegram and more — all in one library.</string>
+    <string name="onboarding_title_private">Stays on your phone</string>
+    <string name="onboarding_body_private">Nothing is uploaded. Your files stay private and work fully offline.</string>
+    <string name="onboarding_title_access">Allow storage access</string>
+    <string name="onboarding_body_access">We need access to discover documents on this device. You can choose specific folders instead.</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_allow">Allow access</string>
+    <string name="onboarding_choose_folders">Choose folders instead</string>
+</resources>

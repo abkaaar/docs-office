@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Docs Office</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_files">Files</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_tools">Tools</string>
+    <string name="nav_more">More</string>
+    <string name="vault_title">Vault</string>
+    <string name="vault_lock">Lock vault</string>
+    <string name="vault_unlock">Unlock vault</string>
+    <string name="vault_empty">Vault is empty. Move documents here from Files.</string>
+    <string name="settings_vault">Private vault</string>
+    <string name="back">Back</string>
+    <string name="onboarding_title_manage">Manage documents on your device</string>
+    <string name="onboarding_body_manage">Browse, open, organise and share files from Downloads, WhatsApp, Telegram and more — all in one library.</string>
+    <string name="onboarding_title_private">Stays on your phone</string>
+    <string name="onboarding_body_private">Nothing is uploaded. Your files stay private and work fully offline.</string>
+    <string name="onboarding_title_access">Allow storage access</string>
+    <string name="onboarding_body_access">We need access to discover documents on this device. You can choose specific folders instead.</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_allow">Allow access</string>
+    <string name="onboarding_choose_folders">Choose folders instead</string>
+    <string name="home_empty">No documents yet. Download or receive a file, then tap Scan again.</string>
+    <string name="home_manage_hint">Manage any document on your device</string>
+    <string name="scan_documents">Scan documents</string>
+    <string name="open_with">Open with…</string>
+    <string name="share">Share</string>
+</resources>

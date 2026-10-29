@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Docs Office</string>
+    <string name="nav_home">Gida</string>
+    <string name="nav_files">Fayiloli</string>
+    <string name="nav_search">Nema</string>
+    <string name="nav_tools">Kayan aiki</string>
+    <string name="nav_more">Ƙari</string>
+    <string name="vault_title">Vault</string>
+    <string name="vault_lock">Kulle vault</string>
+    <string name="vault_unlock">Buɗe vault</string>
+    <string name="vault_empty">Vault ba komai. Matsar da takardu daga Fayiloli.</string>
+    <string name="settings_vault">Vault mai sirri</string>
+    <string name="back">Baya</string>
+    <string name="onboarding_title_manage">Sarrafa takardu a wayarka</string>
+    <string name="onboarding_body_manage">Bincika, buɗe, tsara da raba fayiloli daga Downloads, WhatsApp, Telegram da sauransu — a ɗaya dakin karatu.</string>
+    <string name="onboarding_title_private">Yana kan wayarka</string>
+    <string name="onboarding_body_private">Babu abin da ake loda. Fayilolinka suna sirri kuma suna aiki ba tare da intanet ba.</string>
+    <string name="onboarding_title_access">Bada damar ajiya</string>
+    <string name="onboarding_body_access">Muna buƙatar damar gano takardu a wannan na\'ura. Kuna iya zaɓar wasu folda.</string>
+    <string name="onboarding_skip">Tsallake</string>
+    <string name="onboarding_next">Na gaba</string>
+    <string name="onboarding_back">Baya</string>
+    <string name="onboarding_allow">Bada dama</string>
+    <string name="onboarding_choose_folders">Zaɓi folda maimakon</string>
+    <string name="home_empty">Babu takardu tukuna. Sauke ko karɓi fayil, sa\'an nan danna Sake bincike.</string>
+    <string name="home_manage_hint">Sarrafa kowace takarda a wayarka</string>
+    <string name="scan_documents">Duba takardu</string>
+    <string name="open_with">Buɗe da…</string>
+    <string name="share">Raba</string>
+</resources>

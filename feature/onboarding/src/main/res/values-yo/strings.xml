@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title_manage">Ṣàkóso àwọn ìwé lórí ẹ̀rọ rẹ</string>
+    <string name="onboarding_body_manage">Wá, ṣí, ṣètò àti pín fáìlì láti Downloads, WhatsApp, Telegram àti inú — nínú ilé-ìkàwé kan.</string>
+    <string name="onboarding_title_private">Ó wà lórí fóònù rẹ</string>
+    <string name="onboarding_body_private">Kò sí ohun tí a gbé lórí nẹ́tíwọ́kì. Àwọn fáìlì rẹ jẹ́ àṣírí, wọ́n sì ń ṣiṣẹ́ láìsí íńtánẹ́ẹ̀tì.</string>
+    <string name="onboarding_title_access">Fàyè gba ìfipamọ́</string>
+    <string name="onboarding_body_access">A nílò ìráàyèsí láti rí àwọn ìwé lórí ẹ̀rọ yìí. O lè yan àwọn folder pàtó.</string>
+    <string name="onboarding_skip">Fòó</string>
+    <string name="onboarding_next">Tẹ̀síwájú</string>
+    <string name="onboarding_back">Padà</string>
+    <string name="onboarding_allow">Fàyè gba ìráàyèsí</string>
+    <string name="onboarding_choose_folders">Yan àwọn folder dípò</string>
+</resources>

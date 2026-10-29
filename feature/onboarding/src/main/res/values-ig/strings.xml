@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title_manage">Jikwaa akwụkwọ n\'igwe gị</string>
+    <string name="onboarding_body_manage">Chọọ, mepee, hazie ma kesaa faịlụ sitere na Downloads, WhatsApp, Telegram na ndị ọzọ — n\'otu ọba akwụkwọ.</string>
+    <string name="onboarding_title_private">Ọ nọ n\'ekwentị gị</string>
+    <string name="onboarding_body_private">Onweghi ihe ebugoro. Faịlụ gị dị nzuzo ma na-arụ ọrụ n\'enweghị ịntanetị.</string>
+    <string name="onboarding_title_access">Nye ohere nchekwa</string>
+    <string name="onboarding_body_access">Anyị chọrọ ohere ịchọta akwụkwọ n\'igwe a. Ị nwere ike họrọ folder ụfọdụ.</string>
+    <string name="onboarding_skip">Mafee</string>
+    <string name="onboarding_next">Osote</string>
+    <string name="onboarding_back">Azụ</string>
+    <string name="onboarding_allow">Nye ohere</string>
+    <string name="onboarding_choose_folders">Họrọ folder kama</string>
+</resources>

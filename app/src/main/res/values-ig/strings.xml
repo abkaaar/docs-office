@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Docs Office</string>
+    <string name="nav_home">Ụlọ</string>
+    <string name="nav_files">Faịlụ</string>
+    <string name="nav_search">Chọọ</string>
+    <string name="nav_tools">Ngwaọrụ</string>
+    <string name="nav_more">Ọzọ</string>
+    <string name="vault_title">Vault</string>
+    <string name="vault_lock">Kpọchie vault</string>
+    <string name="vault_unlock">Meghee vault</string>
+    <string name="vault_empty">Vault dị n\'efu. Bugharịa akwụkwọ site na Faịlụ.</string>
+    <string name="settings_vault">Vault nzuzo</string>
+    <string name="back">Azụ</string>
+    <string name="onboarding_title_manage">Jikwaa akwụkwọ n\'igwe gị</string>
+    <string name="onboarding_body_manage">Chọọ, mepee, hazie ma kesaa faịlụ sitere na Downloads, WhatsApp, Telegram na ndị ọzọ — n\'otu ọba akwụkwọ.</string>
+    <string name="onboarding_title_private">Ọ nọ n\'ekwentị gị</string>
+    <string name="onboarding_body_private">Onweghi ihe ebugoro. Faịlụ gị dị nzuzo ma na-arụ ọrụ n\'enweghị ịntanetị.</string>
+    <string name="onboarding_title_access">Nye ohere nchekwa</string>
+    <string name="onboarding_body_access">Anyị chọrọ ohere ịchọta akwụkwọ n\'igwe a. Ị nwere ike họrọ folder ụfọdụ.</string>
+    <string name="onboarding_skip">Mafee</string>
+    <string name="onboarding_next">Osote</string>
+    <string name="onboarding_back">Azụ</string>
+    <string name="onboarding_allow">Nye ohere</string>
+    <string name="onboarding_choose_folders">Họrọ folder kama</string>
+    <string name="home_empty">Onweghi akwụkwọ ugbu a. Budata ma ọ bụ nata faịlụ, wee pịa Scan again.</string>
+    <string name="home_manage_hint">Jikwaa akwụkwọ ọ bụla n\'igwe gị</string>
+    <string name="scan_documents">Nyochaa akwụkwọ</string>
+    <string name="open_with">Mepee site na…</string>
+    <string name="share">Kekọrịta</string>
+</resources>
