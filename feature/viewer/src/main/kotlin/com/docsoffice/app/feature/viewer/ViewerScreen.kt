@@ -178,6 +178,8 @@ fun ViewerScreen(
             onOpenWith = openWith,
             onFind = viewModel::setFindQuery,
             onTheme = viewModel::setReaderTheme,
+            onLarger = { viewModel.setFontScale(s.fontScale + 0.1f) },
+            onSmaller = { viewModel.setFontScale(s.fontScale - 0.1f) },
         )
         is ViewerUiState.SlidesReady -> SlidesViewer(
             state = s,
@@ -189,6 +191,8 @@ fun ViewerScreen(
             onShare = share,
             onOpenWith = openWith,
             onTheme = viewModel::setReaderTheme,
+            onLarger = { viewModel.setFontScale(s.fontScale + 0.1f) },
+            onSmaller = { viewModel.setFontScale(s.fontScale - 0.1f) },
         )
     }
 }
@@ -441,12 +445,19 @@ private fun TextViewer(
                     text = "Showing a portion of this file (${state.encodingLabel}). " +
                         "Content below is not the full document until Load more reaches the end.",
                     color = fg.copy(alpha = 0.75f),
-                    fontSize = 12.sp,
+                    fontSize = ReaderTextStyles.metaSize(state.fontScale),
+                    fontFamily = ReaderTextStyles.bodyFamily,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
             if (state.isCsv) {
-                CsvTable(state.csvRows, state.findQuery, fg)
+                OfficeTableGrid(
+                    rows = state.csvRows,
+                    findQuery = state.findQuery,
+                    fg = fg,
+                    fontScale = state.fontScale,
+                    modifier = Modifier.fillMaxSize().padding(8.dp),
+                )
             } else {
                 val listState = rememberLazyListState()
                 LazyColumn(
@@ -461,9 +472,13 @@ private fun TextViewer(
                             line.contains(state.findQuery, ignoreCase = true)
                         Text(
                             text = line.ifEmpty { " " },
-                            color = if (match) Color(0xFFB45309) else fg,
-                            fontSize = (14 * state.fontScale).sp,
-                            fontFamily = if (state.monospace) FontFamily.Monospace else FontFamily.Default,
+                            color = if (match) ReaderTextStyles.findMatch else fg,
+                            fontSize = ReaderTextStyles.bodySize(state.fontScale),
+                            fontFamily = if (state.monospace) {
+                                FontFamily.Monospace
+                            } else {
+                                ReaderTextStyles.bodyFamily
+                            },
                             maxLines = if (state.wrap) Int.MAX_VALUE else 1,
                             overflow = if (state.wrap) TextOverflow.Clip else TextOverflow.Ellipsis,
                         )
@@ -481,42 +496,6 @@ private fun TextViewer(
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CsvTable(rows: List<List<String>>, findQuery: String, fg: Color) {
-    val cols = (rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1)
-    val hScroll = rememberScrollState()
-    val vScroll = rememberScrollState()
-    Column(
-        Modifier
-            .fillMaxSize()
-            .horizontalScroll(hScroll)
-            .verticalScroll(vScroll)
-            .padding(8.dp),
-    ) {
-        rows.forEachIndexed { rowIndex, row ->
-            Row(modifier = Modifier.border(0.5.dp, fg.copy(alpha = 0.2f))) {
-                repeat(cols) { col ->
-                    val cell = row.getOrNull(col).orEmpty()
-                    val match = findQuery.isNotBlank() && cell.contains(findQuery, ignoreCase = true)
-                    Text(
-                        text = cell,
-                        color = if (match) Color(0xFFB45309) else fg,
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = if (rowIndex == 0) FontWeight.SemiBold else FontWeight.Normal,
-                        modifier = Modifier
-                            .width(120.dp)
-                            .border(0.5.dp, fg.copy(alpha = 0.15f))
-                            .padding(6.dp),
-                    )
                 }
             }
         }
@@ -584,25 +563,37 @@ private fun DocxBlock(
     fg: Color,
 ) {
     val match = findQuery.isNotBlank() && block.plainText.contains(findQuery, ignoreCase = true)
-    val size = when (block.headingLevel) {
-        1 -> 22f
-        2 -> 18f
-        3 -> 16f
-        else -> 14f
-    } * fontScale
-    if (block.imagePath != null) {
+    val size = if (block.headingLevel > 0) {
+        ReaderTextStyles.headingSize(block.headingLevel, fontScale)
+    } else {
+        ReaderTextStyles.bodySize(fontScale)
+    }
+    val imagePath = block.imagePath
+    if (imagePath != null) {
         AsyncImage(
-            model = File(block.imagePath),
+            model = File(imagePath),
             contentDescription = "Document image",
             modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp),
             contentScale = ContentScale.Fit,
         )
     }
+    val cells = block.cells
+    if (cells != null && cells.isNotEmpty()) {
+        OfficeTableGrid(
+            rows = cells,
+            findQuery = findQuery,
+            fg = fg,
+            fontScale = fontScale,
+            scrollable = false,
+        )
+        return
+    }
     if (block.plainText.isNotBlank()) {
         Text(
             text = block.plainText,
-            color = if (match) Color(0xFFB45309) else fg,
-            fontSize = size.sp,
+            color = if (match) ReaderTextStyles.findMatch else fg,
+            fontSize = size,
+            fontFamily = ReaderTextStyles.bodyFamily,
             fontWeight = if (block.bold) FontWeight.Bold else FontWeight.Normal,
             fontStyle = if (block.italic) {
                 androidx.compose.ui.text.font.FontStyle.Italic
@@ -710,6 +701,8 @@ private fun SpreadsheetViewer(
     onOpenWith: () -> Unit,
     onFind: (String) -> Unit,
     onTheme: (String) -> Unit,
+    onLarger: () -> Unit,
+    onSmaller: () -> Unit,
 ) {
     val columnCount = (state.rows.maxOfOrNull { it.size } ?: 1).coerceAtLeast(1)
     val fg = readerForeground(state.theme)
@@ -718,6 +711,9 @@ private fun SpreadsheetViewer(
     val hScroll = rememberScrollState()
     val cellWidth = 120.dp
     val rowHeaderWidth = 44.dp
+    val rowHeight = 36.dp
+    val cellSp = ReaderTextStyles.cellSize(state.fontScale)
+    val headerSp = ReaderTextStyles.headerSize(state.fontScale)
     var findOpen by remember { mutableStateOf(false) }
 
     ViewerShell(
@@ -728,7 +724,11 @@ private fun SpreadsheetViewer(
         onFavorite = onFavorite,
         onShare = onShare,
         onOpenWith = onOpenWith,
-        overflowItems = listOf("Find" to { findOpen = true }) + themeMenu(onTheme),
+        overflowItems = listOf(
+            "Find" to { findOpen = true },
+            "A+" to onLarger,
+            "A-" to onSmaller,
+        ) + themeMenu(onTheme),
         bottomBar = {
             if (state.sheetNames.size > 1) {
                 LazyRow(
@@ -769,7 +769,8 @@ private fun SpreadsheetViewer(
                         .background(headerBg)
                         .padding(8.dp),
                     color = fg,
-                    fontSize = 13.sp,
+                    fontSize = ReaderTextStyles.metaSize(state.fontScale),
+                    fontFamily = ReaderTextStyles.gridFamily,
                     maxLines = 4,
                 )
             }
@@ -786,12 +787,17 @@ private fun SpreadsheetViewer(
                             .background(headerBg)
                             .border(0.5.dp, gridLine),
                     ) {
-                        Text("", modifier = Modifier.width(rowHeaderWidth).padding(6.dp), fontSize = 11.sp)
+                        Text(
+                            "",
+                            modifier = Modifier.width(rowHeaderWidth).padding(6.dp),
+                            fontSize = headerSp,
+                        )
                         repeat(columnCount) { col ->
                             Text(
                                 columnLetter(col),
                                 color = fg.copy(alpha = 0.75f),
-                                fontSize = 11.sp,
+                                fontSize = headerSp,
+                                fontFamily = ReaderTextStyles.gridFamily,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                                     .width(cellWidth)
@@ -800,24 +806,42 @@ private fun SpreadsheetViewer(
                             )
                         }
                     }
-                    LazyColumn(modifier = Modifier.width(gridWidth).fillMaxHeight()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .width(gridWidth)
+                            .fillMaxHeight()
+                            .graphicsLayer { clip = false },
+                    ) {
                         itemsIndexed(state.rows, key = { i, _ -> i }) { rowIndex, row ->
                             val isHeader = rowIndex == 0
+                            val rowFullyCovered = (0 until columnCount).all { col ->
+                                isVerticallyCoveredCell(state.cells, rowIndex, col)
+                            }
                             Row(
                                 modifier = Modifier
                                     .width(gridWidth)
+                                    .then(
+                                        if (rowFullyCovered) {
+                                            Modifier.height(0.dp)
+                                        } else {
+                                            Modifier.heightIn(min = rowHeight)
+                                        },
+                                    )
                                     .background(if (isHeader) headerBg else Color.Transparent)
                                     .border(0.5.dp, gridLine),
                             ) {
-                                Text(
-                                    (rowIndex + 1).toString(),
-                                    color = fg.copy(alpha = 0.55f),
-                                    fontSize = 11.sp,
-                                    modifier = Modifier
-                                        .width(rowHeaderWidth)
-                                        .border(0.5.dp, gridLine)
-                                        .padding(4.dp, 8.dp),
-                                )
+                                if (!rowFullyCovered) {
+                                    Text(
+                                        (rowIndex + 1).toString(),
+                                        color = fg.copy(alpha = 0.55f),
+                                        fontSize = headerSp,
+                                        fontFamily = ReaderTextStyles.gridFamily,
+                                        modifier = Modifier
+                                            .width(rowHeaderWidth)
+                                            .border(0.5.dp, gridLine)
+                                            .padding(4.dp, 8.dp),
+                                    )
+                                }
                                 repeat(columnCount) { col ->
                                     val rich = state.cells.getOrNull(rowIndex)?.getOrNull(col)
                                     if (rich?.covered == true) {
@@ -826,12 +850,15 @@ private fun SpreadsheetViewer(
                                             earlier != null && !earlier.covered &&
                                                 c + earlier.colSpan > col
                                         }
-                                        if (!spannedByEarlier) {
-                                            // Later rows under a vertical merge: keep column alignment.
+                                        if (spannedByEarlier) return@repeat
+                                        if (isVerticallyCoveredCell(state.cells, rowIndex, col)) {
+                                            // Space reserved under overlaying merge anchor; no border.
+                                            Spacer(Modifier.width(cellWidth))
+                                        } else {
                                             Box(
                                                 modifier = Modifier
                                                     .width(cellWidth)
-                                                    .heightIn(min = 36.dp),
+                                                    .heightIn(min = rowHeight),
                                             )
                                         }
                                         return@repeat
@@ -844,21 +871,27 @@ private fun SpreadsheetViewer(
                                         cell.contains(state.findQuery, ignoreCase = true)
                                     Text(
                                         cell,
-                                        color = when {
-                                            match -> Color(0xFFB45309)
-                                            else -> fg
+                                        color = if (match) ReaderTextStyles.findMatch else fg,
+                                        fontSize = cellSp,
+                                        fontFamily = ReaderTextStyles.gridFamily,
+                                        fontWeight = if (isHeader) {
+                                            FontWeight.SemiBold
+                                        } else {
+                                            FontWeight.Normal
                                         },
-                                        fontSize = 12.sp,
-                                        fontWeight = if (isHeader) FontWeight.SemiBold else FontWeight.Normal,
                                         maxLines = 3,
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier
                                             .width(cellWidth * colSpan)
-                                            .heightIn(min = 36.dp * rowSpan)
+                                            .height(rowHeight * rowSpan)
                                             .zIndex(if (rowSpan > 1 || colSpan > 1) 1f else 0f)
                                             .border(
                                                 if (selected) 2.dp else 0.5.dp,
-                                                if (selected) MaterialTheme.colorScheme.primary else gridLine,
+                                                if (selected) {
+                                                    MaterialTheme.colorScheme.primary
+                                                } else {
+                                                    gridLine
+                                                },
                                             )
                                             .clickable { onSelectCell(rowIndex, col) }
                                             .padding(8.dp),
@@ -871,7 +904,8 @@ private fun SpreadsheetViewer(
                                 Text(
                                     "Showing first ${state.rows.size} rows",
                                     color = fg.copy(alpha = 0.6f),
-                                    fontSize = 12.sp,
+                                    fontSize = ReaderTextStyles.metaSize(state.fontScale),
+                                    fontFamily = ReaderTextStyles.bodyFamily,
                                     modifier = Modifier.padding(12.dp),
                                 )
                             }
@@ -881,6 +915,34 @@ private fun SpreadsheetViewer(
             }
         }
     }
+}
+
+/** True when this cell is covered by a vertical merge whose anchor is on a prior row. */
+private fun isVerticallyCoveredCell(
+    cells: List<List<com.docsoffice.app.renderer.ooxml.XlsxRenderer.SpreadsheetCell>>,
+    rowIndex: Int,
+    col: Int,
+): Boolean {
+    val rich = cells.getOrNull(rowIndex)?.getOrNull(col) ?: return false
+    if (!rich.covered) return false
+    for (r in (rowIndex - 1) downTo 0) {
+        val above = cells.getOrNull(r)?.getOrNull(col) ?: continue
+        if (!above.covered && above.rowSpan > 1 && r + above.rowSpan > rowIndex) {
+            return true
+        }
+        // Also check anchors that start left and colSpan over this column.
+        for (c in 0..col) {
+            val anchor = cells.getOrNull(r)?.getOrNull(c) ?: continue
+            if (!anchor.covered &&
+                anchor.rowSpan > 1 &&
+                c + anchor.colSpan > col &&
+                r + anchor.rowSpan > rowIndex
+            ) {
+                return true
+            }
+        }
+    }
+    return false
 }
 
 @Composable
@@ -894,16 +956,22 @@ private fun SlidesViewer(
     onShare: () -> Unit,
     onOpenWith: () -> Unit,
     onTheme: (String) -> Unit,
+    onLarger: () -> Unit,
+    onSmaller: () -> Unit,
 ) {
     val slide = state.current
     val fg = readerForeground(state.theme)
     var scale by remember(state.slideIndex) { mutableFloatStateOf(1f) }
     var showNotes by remember { mutableStateOf(false) }
-    val bgColor = remember(slide?.backgroundHint) {
-        runCatching {
-            slide?.backgroundHint?.takeIf { it.startsWith("#") }?.let { Color(android.graphics.Color.parseColor(it)) }
-        }.getOrNull() ?: Color.White
-    }
+    val themeBg = readerBackground(state.theme)
+    val bgColor = slide?.backgroundHint?.takeIf { it.startsWith("#") }?.let { hint ->
+        runCatching { Color(android.graphics.Color.parseColor(hint)) }.getOrNull()
+    } ?: themeBg
+    val slideFg = ReaderTextStyles.slideContentForeground(
+        backgroundHint = slide?.backgroundHint.orEmpty(),
+        themeFg = fg,
+    )
+    val bodySp = ReaderTextStyles.bodySize(state.fontScale)
 
     ViewerShell(
         title = "Slide ${state.slideIndex + 1} of ${state.slideCount}",
@@ -916,6 +984,8 @@ private fun SlidesViewer(
         overflowItems = listOf(
             if (showNotes) "Hide notes" to { showNotes = false }
             else "Speaker notes" to { showNotes = true },
+            "A+" to onLarger,
+            "A-" to onSmaller,
         ) + themeMenu(onTheme),
         bottomBar = {
             Column {
@@ -989,28 +1059,60 @@ private fun SlidesViewer(
                         slide.placeholders.forEach { label ->
                             Text(
                                 "[$label]",
-                                color = Color.Gray,
-                                style = MaterialTheme.typography.labelLarge,
+                                color = slideFg.copy(alpha = 0.55f),
+                                fontSize = ReaderTextStyles.metaSize(state.fontScale),
+                                fontFamily = ReaderTextStyles.bodyFamily,
+                            )
+                        }
+                        slide.tables.forEach { table ->
+                            OfficeTableGrid(
+                                rows = table,
+                                findQuery = "",
+                                fg = slideFg,
+                                fontScale = state.fontScale,
+                                scrollable = false,
+                                firstRowHeader = true,
                             )
                         }
                         if (slide.body.isNotBlank() && slide.body != "(Empty slide)") {
                             Text(
                                 slide.body,
-                                color = Color.Black,
-                                style = MaterialTheme.typography.bodyLarge,
-                                lineHeight = 22.sp,
+                                color = slideFg,
+                                fontSize = bodySp,
+                                fontFamily = ReaderTextStyles.bodyFamily,
+                                lineHeight = (22f * state.fontScale).sp,
                                 modifier = Modifier.fillMaxWidth(),
                             )
-                        } else if (slide.imagePaths.isEmpty() && slide.placeholders.isEmpty()) {
-                            Text("(Empty slide)", color = Color.Gray)
+                        } else if (
+                            slide.imagePaths.isEmpty() &&
+                            slide.placeholders.isEmpty() &&
+                            slide.tables.isEmpty()
+                        ) {
+                            Text(
+                                "(Empty slide)",
+                                color = slideFg.copy(alpha = 0.5f),
+                                fontSize = bodySp,
+                                fontFamily = ReaderTextStyles.bodyFamily,
+                            )
                         }
                     }
                 }
             }
             if (showNotes && !slide?.notes.isNullOrBlank()) {
                 HorizontalDivider(color = fg.copy(alpha = 0.15f))
-                Text("Notes", style = MaterialTheme.typography.labelLarge, color = fg.copy(alpha = 0.7f))
-                Text(slide?.notes.orEmpty(), color = fg.copy(alpha = 0.85f))
+                Text(
+                    "Notes",
+                    fontSize = ReaderTextStyles.metaSize(state.fontScale),
+                    fontFamily = ReaderTextStyles.bodyFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    color = fg.copy(alpha = 0.7f),
+                )
+                Text(
+                    slide?.notes.orEmpty(),
+                    color = fg.copy(alpha = 0.85f),
+                    fontSize = bodySp,
+                    fontFamily = ReaderTextStyles.bodyFamily,
+                )
             }
         }
     }

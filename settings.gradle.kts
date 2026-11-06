@@ -39,7 +39,6 @@ include(":renderer:text")
 include(":renderer:image")
 include(":renderer:ooxml")
 
-include(":core:billing")
 include(":core:pdftools")
 
 include(":feature:onboarding")

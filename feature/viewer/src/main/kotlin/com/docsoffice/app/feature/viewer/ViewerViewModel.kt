@@ -101,6 +101,7 @@ sealed interface ViewerUiState {
         val localPath: String,
         val selectedCell: Pair<Int, Int>? = null,
         val findQuery: String = "",
+        val fontScale: Float = 1f,
     ) : ViewerUiState
 
     data class SlidesReady(
@@ -110,6 +111,7 @@ sealed interface ViewerUiState {
         val current: PptxRenderer.Slide?,
         val theme: String,
         val loadingSlide: Boolean = false,
+        val fontScale: Float = 1f,
     ) : ViewerUiState
 
     data class ImageReady(
@@ -334,11 +336,16 @@ class ViewerViewModel @Inject constructor(
     }
 
     fun setFontScale(scale: Float) {
+        val clamped = scale.coerceIn(0.8f, 2.5f)
         when (val current = _state.value) {
             is ViewerUiState.TextReady ->
-                _state.value = current.copy(fontScale = scale.coerceIn(0.8f, 2.5f))
+                _state.value = current.copy(fontScale = clamped)
             is ViewerUiState.DocxReady ->
-                _state.value = current.copy(fontScale = scale.coerceIn(0.8f, 2.5f))
+                _state.value = current.copy(fontScale = clamped)
+            is ViewerUiState.SpreadsheetReady ->
+                _state.value = current.copy(fontScale = clamped)
+            is ViewerUiState.SlidesReady ->
+                _state.value = current.copy(fontScale = clamped)
             else -> Unit
         }
     }

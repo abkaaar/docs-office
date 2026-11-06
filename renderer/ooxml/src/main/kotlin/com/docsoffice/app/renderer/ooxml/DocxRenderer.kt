@@ -36,6 +36,8 @@ class DocxRenderer : DocumentRenderer {
         val isTableRow: Boolean = false,
         val imagePath: String? = null,
         val hyperlink: String? = null,
+        /** When non-null, a full table matrix (rows → cells). One block per table. */
+        val cells: List<List<String>>? = null,
     ) {
         enum class Kind { PARAGRAPH, HEADING, LIST_ITEM, TABLE_ROW, IMAGE, HORIZONTAL_RULE }
     }
@@ -131,16 +133,51 @@ class DocxRenderer : DocumentRenderer {
 
         private fun parseTable(tableXml: String): List<RichBlock> {
             val rows = XmlText.extractBetween(tableXml, "<w:tr", "</w:tr>")
-            return rows.map { row ->
-                val cells = XmlText.extractBetween(row, "<w:tc", "</w:tc>")
-                    .map { cell -> XmlText.stripTags("<w:tc$cell</w:tc>") }
-                    .filter { it.isNotBlank() }
+            val matrix = rows.map { row ->
+                XmlText.extractBetween(row, "<w:tc", "</w:tc>").flatMap { cellInner ->
+                    val cellXml = "<w:tc$cellInner</w:tc>"
+                    val span = Regex("""w:gridSpan[^/>]*w:val="(\d+)"""")
+                        .find(cellXml)
+                        ?.groupValues
+                        ?.get(1)
+                        ?.toIntOrNull()
+                        ?.coerceAtLeast(1)
+                        ?: 1
+                    val text = parseCellText(cellXml)
+                    List(span) { index -> if (index == 0) text else "" }
+                }
+            }
+            if (matrix.isEmpty() || matrix.all { row -> row.all { it.isBlank() } }) {
+                return emptyList()
+            }
+            val plain = matrix.joinToString("\n") { row -> row.joinToString(" │ ") }
+            return listOf(
                 RichBlock(
-                    plainText = cells.joinToString(" │ "),
+                    plainText = plain,
                     kind = RichBlock.Kind.TABLE_ROW,
                     isTableRow = true,
-                )
-            }.filter { it.plainText.isNotBlank() }
+                    cells = matrix,
+                ),
+            )
+        }
+
+        /** Cell text from runs; multi-paragraph cells keep newlines. */
+        private fun parseCellText(cellXml: String): String {
+            val paragraphs = XmlText.extractBetween(cellXml, "<w:p", "</w:p>")
+            if (paragraphs.isEmpty()) {
+                return extractRunText(cellXml)
+            }
+            return paragraphs
+                .map { pInner -> extractRunText("<w:p$pInner</w:p>") }
+                .joinToString("\n")
+                .trim()
+        }
+
+        private fun extractRunText(xml: String): String {
+            return Regex("""<w:t(?:\s[^>]*)?>(.*?)</w:t>""", RegexOption.DOT_MATCHES_ALL)
+                .findAll(xml)
+                .joinToString("") { XmlText.decodeEntities(it.groupValues[1]) }
+                .trim()
         }
 
         private fun parseParagraph(
@@ -157,11 +194,7 @@ class DocxRenderer : DocumentRenderer {
             val bold = pXml.contains("w:b/>") || pXml.contains("<w:b ") || pXml.contains("<w:b>")
             val italic = pXml.contains("w:i/>") || pXml.contains("<w:i ")
             val underline = pXml.contains("<w:u ")
-            val text = buildString {
-                Regex("""<w:t(?:\s[^>]*)?>(.*?)</w:t>""", RegexOption.DOT_MATCHES_ALL)
-                    .findAll(pXml)
-                    .forEach { append(XmlText.decodeEntities(it.groupValues[1])) }
-            }.trim()
+            val text = extractRunText(pXml)
 
             val blip = Regex("""r:embed="([^"]+)"""").find(pXml)?.groupValues?.get(1)
             var imagePath: String? = null

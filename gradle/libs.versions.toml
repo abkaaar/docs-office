@@ -29,14 +29,13 @@ mockk = "1.14.2"
 turbine = "1.2.0"
 truth = "1.4.4"
 robolectric = "4.14.1"
-billing = "7.1.1"
 camerax = "1.4.2"
 pdfboxAndroid = "2.0.27.0"
 opencv = "4.13.0"
 tink = "1.16.0"
 biometric = "1.1.0"
 firebaseBom = "33.15.0"
-googleServices = "4.4.2"
+googleServices = "4.5.0"
 crashlyticsGradle = "3.0.3"
 
 [libraries]
@@ -92,7 +91,6 @@ mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
-billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }

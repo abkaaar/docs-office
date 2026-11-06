@@ -37,9 +37,14 @@ class PptxRenderer : DocumentRenderer {
         val title: String = "",
         val backgroundHint: String = "",
         val placeholders: List<String> = emptyList(),
+        /** DrawingML tables as row → cell matrices (blank cells preserved). */
+        val tables: List<List<List<String>>> = emptyList(),
     ) {
         val isBlank: Boolean
-            get() = body.isBlank() && notes.isBlank() && imagePaths.isEmpty()
+            get() = body.isBlank() &&
+                notes.isBlank() &&
+                imagePaths.isEmpty() &&
+                tables.isEmpty()
     }
 
     data class SlideCatalog(
@@ -97,6 +102,13 @@ class PptxRenderer : DocumentRenderer {
                         append('\n')
                     }
                     append(slide.body)
+                    slide.tables.forEach { table ->
+                        if (isNotEmpty() && !endsWith('\n')) append('\n')
+                        table.forEach { row ->
+                            append(row.joinToString("\t"))
+                            append('\n')
+                        }
+                    }
                     if (slide.notes.isNotBlank()) {
                         append("\nNotes: ")
                         append(slide.notes)
@@ -157,10 +169,12 @@ class PptxRenderer : DocumentRenderer {
             mediaDir: File?,
         ): Slide {
             val xml = OoxmlZip.readEntryText(zip, slidePath).orEmpty()
-            val paragraphs = extractShapeParagraphs(xml)
+            val shapeContent = extractShapeContent(xml)
+            val paragraphs = shapeContent.paragraphs
+            val tables = shapeContent.tables
             val title = paragraphs.firstOrNull().orEmpty()
             val body = paragraphs.joinToString("\n").ifBlank {
-                extractTextRuns(xml).ifBlank { "" }
+                if (tables.isEmpty()) extractTextRuns(xml).ifBlank { "" } else ""
             }
 
             val slideBase = slidePath.substringBeforeLast('/') + "/"
@@ -205,7 +219,7 @@ class PptxRenderer : DocumentRenderer {
 
             val displayBody = when {
                 body.isNotBlank() -> body
-                imagePaths.isNotEmpty() -> ""
+                imagePaths.isNotEmpty() || tables.isNotEmpty() -> ""
                 placeholders.isNotEmpty() -> placeholders.joinToString(" · ") { "[$it]" }
                 else -> "(Empty slide)"
             }
@@ -217,12 +231,18 @@ class PptxRenderer : DocumentRenderer {
                 title = title,
                 backgroundHint = bgHint,
                 placeholders = placeholders,
+                tables = tables,
             )
         }
 
-        private fun extractShapeParagraphs(xml: String): List<String> {
-            // Prefer text inside shapes / groups / tables; still uses a:p order in document.
-            val shapeChunks = mutableListOf<String>()
+        private data class ShapeContent(
+            val paragraphs: List<String>,
+            val tables: List<List<List<String>>>,
+        )
+
+        private fun extractShapeContent(xml: String): ShapeContent {
+            val paragraphs = mutableListOf<String>()
+            val tables = mutableListOf<List<List<String>>>()
             val shapeRegex = Regex(
                 """<(?:p:sp|p:grpSp|p:pic|p:graphicFrame)\b[^>]*>.*?</(?:p:sp|p:grpSp|p:pic|p:graphicFrame)>""",
                 RegexOption.DOT_MATCHES_ALL,
@@ -230,27 +250,37 @@ class PptxRenderer : DocumentRenderer {
             shapeRegex.findAll(xml).forEach { match ->
                 val chunk = match.value
                 if (chunk.contains("<a:tbl")) {
-                    shapeChunks += extractTableRows(chunk)
+                    val matrix = extractTableMatrix(chunk)
+                    if (matrix.isNotEmpty()) tables += matrix
                 } else {
-                    shapeChunks += XmlText.paragraphsFromDrawingXml(chunk)
+                    paragraphs += XmlText.paragraphsFromDrawingXml(chunk)
                 }
             }
-            if (shapeChunks.isNotEmpty()) return shapeChunks.distinctPreserveOrder()
-            return XmlText.paragraphsFromDrawingXml(xml)
+            if (paragraphs.isEmpty() && tables.isEmpty()) {
+                return ShapeContent(
+                    paragraphs = XmlText.paragraphsFromDrawingXml(xml),
+                    tables = emptyList(),
+                )
+            }
+            return ShapeContent(
+                paragraphs = paragraphs.distinctPreserveOrder(),
+                tables = tables,
+            )
         }
 
-        /** Tab-separated table rows from DrawingML tables embedded on a slide. */
-        private fun extractTableRows(xml: String): List<String> {
+        /** Cell matrix from DrawingML tables; blank cells preserved. */
+        private fun extractTableMatrix(xml: String): List<List<String>> {
             return Regex("""<a:tr\b[^>]*>.*?</a:tr>""", RegexOption.DOT_MATCHES_ALL)
                 .findAll(xml)
                 .map { row ->
                     Regex("""<a:tc\b[^>]*>.*?</a:tc>""", RegexOption.DOT_MATCHES_ALL)
                         .findAll(row.value)
-                        .map { cell -> XmlText.paragraphsFromDrawingXml(cell.value).joinToString(" ") }
-                        .filter { it.isNotBlank() }
-                        .joinToString("\t")
+                        .map { cell ->
+                            XmlText.paragraphsFromDrawingXml(cell.value).joinToString("\n")
+                        }
+                        .toList()
                 }
-                .filter { it.isNotBlank() }
+                .filter { row -> row.isNotEmpty() }
                 .toList()
         }
 

@@ -1,9 +1,18 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.docs.office.android.application)
     alias(libs.plugins.docs.office.android.compose)
     alias(libs.plugins.docs.office.hilt)
-    alias(libs.plugins.google.services)
+    // Google services Gradle plugin (processes google-services.json)
+    id("com.google.gms.google-services")
     alias(libs.plugins.firebase.crashlytics)
+}
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
 }
 
 android {
@@ -11,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.docsoffice.app"
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
         // Production DocsOfficeApp is @HiltAndroidApp; instrumentation uses the real
         // Hilt graph (AndroidJUnitRunner) so MainActivity injection matches release.
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -25,6 +34,17 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -33,6 +53,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         getByName("staging") {
             isMinifyEnabled = true
@@ -41,6 +64,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -67,7 +93,6 @@ dependencies {
     implementation(project(":renderer:text"))
     implementation(project(":renderer:image"))
     implementation(project(":renderer:ooxml"))
-    implementation(project(":core:billing"))
     implementation(project(":core:pdftools"))
 
     implementation(project(":feature:onboarding"))
@@ -93,9 +118,10 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.androidx.compose.material.icons)
     implementation(libs.androidx.biometric)
+    // Firebase BoM 33.x matches Kotlin 2.1; 35.x needs Kotlin 2.2+ metadata.
+    // Crashlytics only — Analytics unused and pulled Kotlin 2.4 measurement APIs.
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.analytics)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

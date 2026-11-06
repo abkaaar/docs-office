@@ -55,6 +55,51 @@ class PptxRendererTest {
     }
 
     @Test
+    fun parseSlideContents_readsStructuredTables() {
+        val tableSlide = """
+            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+              xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+              <p:cSld><p:spTree>
+                <p:graphicFrame>
+                  <a:graphic><a:graphicData>
+                    <a:tbl>
+                      <a:tr>
+                        <a:tc><a:txBody><a:p><a:r><a:t>A</a:t></a:r></a:p></a:txBody></a:tc>
+                        <a:tc><a:txBody><a:p><a:r><a:t></a:t></a:r></a:p></a:txBody></a:tc>
+                        <a:tc><a:txBody><a:p><a:r><a:t>C</a:t></a:r></a:p></a:txBody></a:tc>
+                      </a:tr>
+                    </a:tbl>
+                  </a:graphicData></a:graphic>
+                </p:graphicFrame>
+              </p:spTree></p:cSld>
+            </p:sld>
+        """.trimIndent()
+        val file = File.createTempFile("table", ".pptx")
+        file.writeBytes(
+            pptxPackage(
+                sldIdOrder = listOf("rId1"),
+                relationships = listOf(
+                    Rel(
+                        "rId1",
+                        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide",
+                        "slides/slide1.xml",
+                    ),
+                ),
+                slides = mapOf("ppt/slides/slide1.xml" to tableSlide),
+            ),
+        )
+        try {
+            val slides = PptxRenderer.parseSlideContents(file)
+            assertEquals(1, slides.size)
+            assertEquals(1, slides[0].tables.size)
+            assertEquals(listOf("A", "", "C"), slides[0].tables[0][0])
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
     fun parseSlideContents_extractsImagesAndNotesViaRels() {
         val file = File.createTempFile("media", ".pptx")
         val pngBytes = TINY_PNG

@@ -19,3 +19,6 @@ out/
 .kotlin/
 *.keystore
 *.jks
+keystore.properties
+upload-keystore.jks
+app/upload-keystore.jks
